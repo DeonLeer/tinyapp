@@ -31,6 +31,10 @@ app.get("/urls/", (req, res) => {
   res.render("urls_index", templateVars);
 })
 
+//New URL submission form
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+})
 
 //shows specific URL
 app.get("/urls/:shortURL", (req, res) => {
@@ -38,11 +42,18 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 })
 
-//New URL submission form
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-})
+//redirects to longURL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
 
+//Creates new Short URL and redirects to URL page
+app.post("/urls", (req, res) => {
+  let newid = generateRandomString();
+  urlDatabase[newid] = req.body["longURL"];
+  res.redirect(`/urls/${newid}`);
+})
 
 
 app.listen(PORT, () => {
