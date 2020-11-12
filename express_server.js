@@ -43,9 +43,28 @@ app.get("/urls.json", (req, res) => {
 //Login
 app.post("/urls/login", (req, res) => {
 
-  res.cookie("username", req.body.username);
+  const email = req.body.email;
 
-  res.redirect("/urls");
+  const password = req.body.password;
+
+  if (!password || !email) {
+    return res.status(400).send("please provide an email and password");
+  }
+  let emailFound;
+  for (let user in users) {
+    if (users[user]["email"] === email) {
+      emailFound = users[user];
+    }
+    if (!emailFound) {
+      res.status(403).send("no user with this email found. try registering an account");
+    } 
+    if (emailFound.password !== password) {
+      res.status(403).send("incorrect password");
+    }
+
+    res.cookie("user_id", emailFound["id"]);
+    res.redirect("/urls");
+  }
 
 })
 
@@ -64,7 +83,6 @@ app.post("/urls/register", (req, res) => {
     return res.status(400).send("please provide an email and password");
   }
   for (let user in users) {
-    console.log(users[user]["email"]);
     if (users[user]["email"] === email) {
       return res.status(400).send("Another user is using that email");
     }
@@ -97,6 +115,15 @@ app.get("/urls/register", (req, res) => {
   const templateVars= {user: users[req.cookies["user_id"]]}
 
   res.render("urls_register", templateVars);
+})
+
+//Login page
+app.get("/urls/login", (req, res) => {
+
+  const templateVars= {user: users[req.cookies["user_id"]]}
+
+  res.render("urls_login", templateVars);
+  
 })
 
 //shows specific URL

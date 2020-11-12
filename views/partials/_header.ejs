@@ -9,7 +9,7 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         <% if(!user) { %>
-        <form method ="POST" action="/urls/login"><input type="text" name="username" placeholder="username"><button type="submit">Login</button></form>
+        <a href="/urls/register"><button type="submit">REGISTER</button></a><a href="/urls/login"><button type="submit">LOGIN</button></a> 
         <% } else { %>
         <p>Welcome back <%= user.email %>!</p><form method="POST" action="/urls/logout"><button type="submit">Logout</button></form>
         <% } %>
