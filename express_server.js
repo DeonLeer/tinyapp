@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs")
 app.use(bodyParser.urlencoded({extended: true}));
@@ -12,12 +13,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 }
 
@@ -29,7 +30,6 @@ const urlDatabase = {
 function urlsForUser(id) {
   let userURLS = {}
   for (let url in urlDatabase) {
-    console.log(urlDatabase[url]["userID"], users[id]["id"])
     if (urlDatabase[url]["userID"] === users[id]["id"])
     userURLS[url] = {longURL: urlDatabase[url].longURL, userID: urlDatabase[url].userID}
   }
@@ -54,7 +54,7 @@ app.get("/urls.json", (req, res) => {
 app.post("/urls/login", (req, res) => {
 
   const email = req.body.email;
-  console.log(email);
+
   const password = req.body.password;
 
   if (!password || !email) {
@@ -68,14 +68,12 @@ app.post("/urls/login", (req, res) => {
   }
   if (!emailFound) {
     res.status(403).send("no user with this email found. try registering an account");
-  } 
-  if (emailFound.password !== password) {
+  } else if (!bcrypt.compareSync(password, emailFound.password)) {
     res.status(403).send("incorrect password");
-  }
-
+  } else {
     res.cookie("user_id", emailFound["id"]);
     res.redirect("/urls");
-
+  }
 
 })
 
@@ -89,7 +87,7 @@ app.post("/urls/logout", (req, res) => {
 app.post("/urls/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
   if (!password || !email) {
     return res.status(400).send("please provide an email and password");
   }
@@ -100,7 +98,6 @@ app.post("/urls/register", (req, res) => {
   }
 
   users[id] = {id, email, password};
-  console.log(users);
   res.cookie("user_id", id);
   res.redirect("/urls");
   })
@@ -110,11 +107,11 @@ app.get("/urls/", (req, res) => {
   if (!req.cookies["user_id"]) {
     const templateVars = {urls: false, user: users[req.cookies["user_id"]]}
     res.render("urls_index", templateVars)
-  }
+  } else {
   let shownURLS = urlsForUser(req.cookies["user_id"]);
   const templateVars = {urls: shownURLS, user: users[req.cookies["user_id"]]};
-
   res.render("urls_index", templateVars);
+  }
 })
 
 //New URL submission form
@@ -124,9 +121,9 @@ app.get("/urls/new", (req, res) => {
 
   if (!templateVars["user"]) {
     res.redirect("/urls/login");
-  }
-
+  } else {
   res.render("urls_new", templateVars);
+  }
 })
 
 //Registration page
