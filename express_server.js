@@ -37,6 +37,11 @@ app.post("/urls/login", (req, res) => {
 
 })
 
+//Logout
+app.post("/urls/logout", (req, res) => {
+  res.clearCookie('username');
+  res.redirect("/urls");
+})
 
 //shows all URLs
 app.get("/urls/", (req, res) => {
