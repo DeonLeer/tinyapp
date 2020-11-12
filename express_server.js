@@ -26,6 +26,16 @@ const urlDatabase = {
   "9sm5xK": {longURL: "http://www.google.com", userID: "userRandomID"},
 };
 
+function urlsForUser(id) {
+  let userURLS = {}
+  for (let url in urlDatabase) {
+    console.log(urlDatabase[url]["userID"], users[id]["id"])
+    if (urlDatabase[url]["userID"] === users[id]["id"])
+    userURLS[url] = {longURL: urlDatabase[url].longURL, userID: urlDatabase[url].userID}
+  }
+  return userURLS;
+}
+
 function generateRandomString() {
   return Math.random().toString(36).substr(2,6);
 }
@@ -44,7 +54,7 @@ app.get("/urls.json", (req, res) => {
 app.post("/urls/login", (req, res) => {
 
   const email = req.body.email;
-
+  console.log(email);
   const password = req.body.password;
 
   if (!password || !email) {
@@ -55,16 +65,17 @@ app.post("/urls/login", (req, res) => {
     if (users[user]["email"] === email) {
       emailFound = users[user];
     }
-    if (!emailFound) {
-      res.status(403).send("no user with this email found. try registering an account");
-    } 
-    if (emailFound.password !== password) {
-      res.status(403).send("incorrect password");
-    }
+  }
+  if (!emailFound) {
+    res.status(403).send("no user with this email found. try registering an account");
+  } 
+  if (emailFound.password !== password) {
+    res.status(403).send("incorrect password");
+  }
 
     res.cookie("user_id", emailFound["id"]);
     res.redirect("/urls");
-  }
+
 
 })
 
@@ -89,14 +100,19 @@ app.post("/urls/register", (req, res) => {
   }
 
   users[id] = {id, email, password};
+  console.log(users);
   res.cookie("user_id", id);
   res.redirect("/urls");
   })
 
 //shows all URLs
 app.get("/urls/", (req, res) => {
-
-  const templateVars = {urls: urlDatabase, user: users[req.cookies["user_id"]]};
+  if (!req.cookies["user_id"]) {
+    const templateVars = {urls: false, user: users[req.cookies["user_id"]]}
+    res.render("urls_index", templateVars)
+  }
+  let shownURLS = urlsForUser(req.cookies["user_id"]);
+  const templateVars = {urls: shownURLS, user: users[req.cookies["user_id"]]};
 
   res.render("urls_index", templateVars);
 })
