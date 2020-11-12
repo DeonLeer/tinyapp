@@ -169,6 +169,15 @@ app.post("/urls", (req, res) => {
 //Deleted URLs from database
 app.post("/urls/:shortURL/delete", (req, res) => {
 
+  const templateVars = {user: users[req.cookies["user_id"]]};
+
+  if (!templateVars["user"]) {
+    res.redirect("/urls/login");
+  }
+  if (templateVars["user"]["id"] !== urlDatabase[req.params.shortURL]["userID"]) {
+    res.redirect("/urls");
+  }
+
   delete urlDatabase[req.params.shortURL];
 
   res.redirect("/urls");
