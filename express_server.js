@@ -60,10 +60,18 @@ app.post("/urls/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  if (!password || !email) {
+    return res.status(400).send("please provide an email and password");
+  }
+  for (let user in users) {
+    console.log(users[user]["email"]);
+    if (users[user]["email"]) {
+      return res.status(400).send("Another user is using that email");
+    }
+  }
+
   users[id] = {id, email, password};
   res.cookie("user_id", id);
-  console.log(users)
-  console.log(id)
   res.redirect("/urls");
   })
 
