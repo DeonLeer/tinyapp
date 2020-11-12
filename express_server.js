@@ -27,7 +27,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 })
 
-
 //Login
 app.post("/urls/login", (req, res) => {
 
@@ -43,6 +42,7 @@ app.post("/urls/logout", (req, res) => {
   res.redirect("/urls");
 })
 
+
 //shows all URLs
 app.get("/urls/", (req, res) => {
 
@@ -57,6 +57,13 @@ app.get("/urls/new", (req, res) => {
   const templateVars= {username: req.cookies["username"]}
 
   res.render("urls_new", templateVars);
+})
+
+app.get("/urls/register", (req, res) => {
+
+  const templateVars= {username: req.cookies["username"]}
+
+  res.render("urls_register", templateVars);
 })
 
 //shows specific URL
