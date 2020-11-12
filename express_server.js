@@ -65,7 +65,7 @@ app.post("/urls/register", (req, res) => {
   }
   for (let user in users) {
     console.log(users[user]["email"]);
-    if (users[user]["email"]) {
+    if (users[user]["email"] === email) {
       return res.status(400).send("Another user is using that email");
     }
   }
