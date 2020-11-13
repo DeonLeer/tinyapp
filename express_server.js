@@ -2,12 +2,16 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+const cookieSession = require("cookie-session")
 
 app.set("view engine", "ejs")
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: "session",
+  keys: ["user_id"]
+}))
+
 
 const users = {
   "userRandomID": {
@@ -71,7 +75,7 @@ app.post("/urls/login", (req, res) => {
   } else if (!bcrypt.compareSync(password, emailFound.password)) {
     res.status(403).send("incorrect password");
   } else {
-    res.cookie("user_id", emailFound["id"]);
+    req.session.user_id = emailFound["id"];
     res.redirect("/urls");
   }
 
@@ -79,7 +83,7 @@ app.post("/urls/login", (req, res) => {
 
 //Logout
 app.post("/urls/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session.user_id = undefined ;
   res.redirect("/urls");
 })
 
@@ -98,18 +102,18 @@ app.post("/urls/register", (req, res) => {
   }
 
   users[id] = {id, email, password};
-  res.cookie("user_id", id);
+  req.session.user_id = id;
   res.redirect("/urls");
   })
 
 //shows all URLs
 app.get("/urls/", (req, res) => {
-  if (!req.cookies["user_id"]) {
-    const templateVars = {urls: false, user: users[req.cookies["user_id"]]}
+  if (!req.session.user_id) {
+    const templateVars = {urls: false, user: users[req.session.user_id]}
     res.render("urls_index", templateVars)
   } else {
-  let shownURLS = urlsForUser(req.cookies["user_id"]);
-  const templateVars = {urls: shownURLS, user: users[req.cookies["user_id"]]};
+  let shownURLS = urlsForUser(req.session.user_id);
+  const templateVars = {urls: shownURLS, user: users[req.session.user_id]};
   res.render("urls_index", templateVars);
   }
 })
@@ -117,7 +121,7 @@ app.get("/urls/", (req, res) => {
 //New URL submission form
 app.get("/urls/new", (req, res) => {
 
-  const templateVars= {user: users[req.cookies["user_id"]]}
+  const templateVars= {user: users[req.session.user_id]}
 
   if (!templateVars["user"]) {
     res.redirect("/urls/login");
@@ -129,7 +133,7 @@ app.get("/urls/new", (req, res) => {
 //Registration page
 app.get("/urls/register", (req, res) => {
 
-  const templateVars= {user: users[req.cookies["user_id"]]};
+  const templateVars= {user: users[req.session.user_id]};
 
   res.render("urls_register", templateVars);
 })
@@ -137,7 +141,7 @@ app.get("/urls/register", (req, res) => {
 //Login page
 app.get("/urls/login", (req, res) => {
 
-  const templateVars= {user: users[req.cookies["user_id"]]}
+  const templateVars= {user: users[req.session.user_id]}
 
   res.render("urls_login", templateVars);
   
@@ -146,7 +150,7 @@ app.get("/urls/login", (req, res) => {
 //shows specific URL
 app.get("/urls/:shortURL", (req, res) => {
 
-  const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]]};
+  const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id]};
 
   console.log(templateVars)
 
@@ -174,7 +178,7 @@ app.post("/urls", (req, res) => {
 
   let newid = generateRandomString();
 
-  urlDatabase[newid] = {longURL: req.body["longURL"], userID: users[req.cookies["user_id"]]["id"]};
+  urlDatabase[newid] = {longURL: req.body["longURL"], userID: users[req.session.user_id]["id"]};
 
   res.redirect(`/urls/`);
 })
@@ -182,7 +186,7 @@ app.post("/urls", (req, res) => {
 //Deleted URLs from database
 app.post("/urls/:shortURL/delete", (req, res) => {
 
-  const templateVars = {user: users[req.cookies["user_id"]]};
+  const templateVars = {user: users[req.session.user_id]};
 
   if (!templateVars["user"]) {
     res.redirect("/urls/login");
@@ -201,7 +205,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 
-  const templateVars = {shortURL: req.params.shortURL, longURL: req.body.editURL, user: users[req.cookies["user_id"]]};
+  const templateVars = {shortURL: req.params.shortURL, longURL: req.body.editURL, user: users[req.session.user_id]};
 
   urlDatabase[req.params.shortURL].longURL = req.body.editURL;
 
