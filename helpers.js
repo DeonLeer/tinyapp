@@ -5,5 +5,19 @@ const getUserByEmail = function(email, database) {
     }
   }
 }
+const urlsForUser = function(id, database, users) {
+  let userURLS = {}
+  for (let url in database) {
+    if (database[url]["userID"] === users[id]["id"])
+    userURLS[url] = {longURL: database[url].longURL, userID: database[url].userID}
+  }
+  return userURLS;
+}
+const generateRandomString = function() {
+  return Math.random().toString(36).substr(2,6);
+}
 
-module.exports = getUserByEmail;
+const funcs = {getUserByEmail, urlsForUser, generateRandomString}
+
+
+module.exports = funcs;
