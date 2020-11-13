@@ -93,7 +93,13 @@ app.post("/urls/register", (req, res) => {
 
 //shows all URLs
 app.get("/urls/", (req, res) => {
-  if (!req.session.user_id) {
+  let userCheck = false;
+  for (let user in users) {
+    if (users[user].id === req.session.user_id) {
+      userCheck = true;
+    }
+  }
+  if (!req.session.user_id || !userCheck) {
     const templateVars = {urls: false, user: users[req.session.user_id]}
     res.render("urls_index", templateVars)
   } else {
