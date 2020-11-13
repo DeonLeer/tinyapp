@@ -44,6 +44,14 @@ function generateRandomString() {
   return Math.random().toString(36).substr(2,6);
 }
 
+const getUserByEmail = function(email, database) {
+  for (let user in database) {
+    if (database[user].email === email) {
+      return database[user];
+    }
+  }
+}
+
 //hello
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -64,12 +72,7 @@ app.post("/urls/login", (req, res) => {
   if (!password || !email) {
     return res.status(400).send("please provide an email and password");
   }
-  let emailFound;
-  for (let user in users) {
-    if (users[user]["email"] === email) {
-      emailFound = users[user];
-    }
-  }
+  let emailFound = getUserByEmail(email, users)
   if (!emailFound) {
     res.status(403).send("no user with this email found. try registering an account");
   } else if (!bcrypt.compareSync(password, emailFound.password)) {
@@ -95,10 +98,8 @@ app.post("/urls/register", (req, res) => {
   if (!password || !email) {
     return res.status(400).send("please provide an email and password");
   }
-  for (let user in users) {
-    if (users[user]["email"] === email) {
-      return res.status(400).send("Another user is using that email");
-    }
+  if (getUserByEmail(email, users)) {
+    return res.status(400).send("Another user is using that email");
   }
 
   users[id] = {id, email, password};
