@@ -50,7 +50,10 @@ function generateRandomString() {
 
 //hello
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if(!req.session.user_id) {
+    return res.redirect("/urls/login")
+  }
+  res.redirect("/urls")
 });
 
 //json string of object
